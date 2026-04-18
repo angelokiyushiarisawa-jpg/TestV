@@ -3,84 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slime Ep 1 - Official YouTube</title>
+  <title>devanime.com - Watch Anime Free</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      background: #121212; 
-      color: #fff; 
-      margin: 0; 
-      padding: 20px; 
-      text-align: center; 
-    }
-    h1 { margin: 20px 0; color: #00d4ff; }
-    button { 
-      padding: 15px 35px; 
-      margin: 12px; 
-      font-size: 18px; 
-      border: none; 
-      border-radius: 12px; 
-      cursor: pointer; 
-      width: 280px; 
-    }
-    .sub-btn { background: #00bfff; color: white; }
-    .dub-btn { background: #ff4500; color: white; }
-    iframe { 
-      width: 100%; 
-      max-width: 960px; 
-      height: 540px; 
-      border: 3px solid #333; 
-      border-radius: 12px; 
-      margin: 25px auto; 
-      display: block; 
-    }
-    .note { 
-      color: #aaa; 
-      font-size: 15px; 
-      margin-top: 40px; 
-      line-height: 1.6; 
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background:#0a0a0a; color:#fff; }
+    header { background:#111; padding:15px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+    .logo { font-size:32px; font-weight:bold; color:#00bfff; }
+    nav a { color:#ddd; margin:0 18px; text-decoration:none; font-size:17px; }
+    .search { padding:10px 20px; width:320px; border-radius:30px; border:none; background:#222; color:#fff; }
+    .hero { height:520px; background: linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.75)), url('https://images.alphacoders.com/106/1060000.jpg'); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; text-align:center; }
+    .hero h1 { font-size:46px; margin-bottom:10px; }
+    .player-container { max-width:1200px; margin:40px auto; padding:0 20px; }
+    .player { width:100%; height:580px; border:4px solid #222; border-radius:16px; background:#000; }
+    .servers { margin:25px 0; text-align:center; }
+    .server-btn { padding:14px 32px; margin:8px; font-size:18px; border:none; border-radius:12px; cursor:pointer; color:white; }
+    .server1 { background:#00bfff; }
+    .server2 { background:#ff4500; }
+    .option-btn { padding:11px 28px; margin:6px; font-size:17px; border-radius:10px; cursor:pointer; }
+    .container { max-width:1200px; margin:40px auto; padding:0 20px; }
+    .section-title { font-size:28px; margin:30px 0 20px; color:#00d4ff; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:20px; }
+    .card { background:#1a1a1a; border-radius:12px; overflow:hidden; transition:0.3s; }
+    .card:hover { transform:scale(1.06); }
+    .card img { width:100%; height:260px; object-fit:cover; }
+    .card h3 { padding:12px; font-size:16px; text-align:center; }
+    footer { background:#111; padding:40px 20px; text-align:center; color:#777; font-size:14px; }
+    .note { color:#888; text-align:center; margin:60px 0; }
   </style>
 </head>
 <body>
-  <h1>That Time I Got Reincarnated as a Slime</h1>
-  <h2>Episode 1 - The Storm Dragon, Veldora</h2>
+  <header>
+    <div class="logo">devanime</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Popular</a>
+      <a href="#">Genres</a>
+      <a href="#">New Releases</a>
+      <a href="#">My List</a>
+    </nav>
+    <input type="text" class="search" placeholder="Search anime...">
+  </header>
 
-  <button class="sub-btn" onclick="showPlayer('sub')">Watch Sub (English Sub)</button>
-  <button class="dub-btn" onclick="showPlayer('dub')">Watch Dub (English Dub)</button>
+  <!-- Hero -->
+  <div class="hero">
+    <div>
+      <h1>That Time I Got Reincarnated as a Slime</h1>
+      <p>Season 1 • Episode 1 • The Storm Dragon, Veldora</p>
+    </div>
+  </div>
 
-  <!-- Sub Version - Official Crunchyroll Upload -->
-  <div id="sub-player" style="display: block;">
-    <h3>English Sub - Official</h3>
-    <iframe src="https://www.youtube.com/embed/LyIiHsqq-FQ" 
-            title="Slime Ep 1 Sub Official" 
+  <!-- Player -->
+  <div class="player-container">
+    <h2 style="text-align:center; margin-bottom:10px;">Watch Episode 1 Now</h2>
+    
+    <div class="servers">
+      <button class="server-btn server1" onclick="switchServer(1)">Server 1 - Muse Asia</button>
+      <button class="server-btn server2" onclick="switchServer(2)">Server 2 - Crunchyroll Official</button>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="option-btn" style="background:#00bfff;" onclick="switchVersion('sub')">Sub</button>
+      <button class="option-btn" style="background:#ff4500;" onclick="switchVersion('dub')">Dub</button>
+    </div>
+
+    <iframe id="player" class="player" 
+            src="https://www.youtube.com/embed/LyIiHsqq-FQ" 
             frameborder="0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
             allowfullscreen></iframe>
   </div>
 
-  <!-- Dub Version - Official Crunchyroll Upload -->
-  <div id="dub-player" style="display: none;">
-    <h3>English Dub - Official</h3>
-    <iframe src="https://www.youtube.com/embed/aNJeqk_J6xY" 
-            title="Slime Ep 1 Dub Official" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen></iframe>
+  <div class="container">
+    <h2 class="section-title">Popular This Week</h2>
+    <div class="grid">
+      <div class="card"><img src="https://picsum.photos/id/1015/300/400" alt="Slime"><h3>That Time I Got Reincarnated as a Slime</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/201/300/400" alt="JJK"><h3>Jujutsu Kaisen</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/301/300/400" alt="Demon Slayer"><h3>Demon Slayer</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/401/300/400" alt="One Piece"><h3>One Piece</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/501/300/400" alt="Solo Leveling"><h3>Solo Leveling</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/601/300/400" alt="Kaiju No.8"><h3>Kaiju No. 8</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/701/300/400" alt="Frieren"><h3>Frieren: Beyond Journey's End</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/801/300/400" alt="Oshi no Ko"><h3>Oshi no Ko</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/901/300/400" alt="Spy x Family"><h3>Spy x Family</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/1005/300/400" alt="Chainsaw Man"><h3>Chainsaw Man</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/110/300/400" alt="Dan Da Dan"><h3>Dan Da Dan</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/120/300/400" alt="Bleach"><h3>Bleach: Thousand-Year Blood War</h3></div>
+    </div>
+
+    <h2 class="section-title">Trending Anime</h2>
+    <div class="grid">
+      <!-- More cards can be added here -->
+      <div class="card"><img src="https://picsum.photos/id/131/300/400" alt="Mashle"><h3>Mashle: Magic and Muscles</h3></div>
+      <div class="card"><img src="https://picsum.photos/id/141/300/400" alt="Wind Breaker"><h3>Wind Breaker</h3></div>
+    </div>
   </div>
+
+  <footer>
+    <p>devanime.com • All links are official sources (Muse Asia & Crunchyroll)<br>
+    Made for demonstration • Safe for GitHub Pages</p>
+  </footer>
 
   <div class="note">
-    These are official full Episode 1 videos uploaded by Crunchyroll on YouTube.<br>
-    If one says "unavailable in your country", try the other button or use the Muse Asia playlist instead (often better in PH):<br>
-    <a href="https://www.youtube.com/playlist?list=PLwLSw1_eDZl0eZktsDv3cu78EC0l2qYKI" target="_blank" style="color:#00bfff;">Muse Asia Sub Playlist</a><br>
-    <a href="https://www.youtube.com/playlist?list=PLwLSw1_eDZl0MfIdBzXRl2q4luviKzsxq" target="_blank" style="color:#00bfff;">Muse Asia Dub Playlist</a>
+    Click Server 1 or Server 2, then choose Sub or Dub.<br>
+    Server 1 (Muse Asia) usually works best in the Philippines.
   </div>
 
   <script>
-    function showPlayer(type) {
-      document.getElementById('sub-player').style.display = (type === 'sub') ? 'block' : 'none';
-      document.getElementById('dub-player').style.display = (type === 'dub') ? 'block' : 'none';
+    const player = document.getElementById('player');
+    let currentServer = 1;
+
+    function switchServer(server) {
+      currentServer = server;
+      if (server === 1) {
+        player.src = "https://www.youtube.com/embed/LyIiHsqq-FQ"; // Muse Asia Sub
+      } else {
+        player.src = "https://www.youtube.com/embed/aNJeqk_J6xY"; // Crunchyroll Dub
+      }
+    }
+
+    function switchVersion(version) {
+      if (currentServer === 1) {
+        if (version === 'sub') player.src = "https://www.youtube.com/embed/LyIiHsqq-FQ";
+        else player.src = "https://www.youtube.com/embed/aNJeqk_J6xY";
+      } else {
+        if (version === 'sub') player.src = "https://www.youtube.com/embed/LyIiHsqq-FQ";
+        else player.src = "https://www.youtube.com/embed/aNJeqk_J6xY";
+      }
     }
   </script>
 </body>
-</html>
+                                                                                                           </html>
