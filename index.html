@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slime Ep 1 - Official YouTube</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #121212; 
+      color: #fff; 
+      margin: 0; 
+      padding: 20px; 
+      text-align: center; 
+    }
+    h1 { margin: 20px 0; color: #00d4ff; }
+    button { 
+      padding: 15px 35px; 
+      margin: 12px; 
+      font-size: 18px; 
+      border: none; 
+      border-radius: 12px; 
+      cursor: pointer; 
+      width: 280px; 
+    }
+    .sub-btn { background: #00bfff; color: white; }
+    .dub-btn { background: #ff4500; color: white; }
+    iframe { 
+      width: 100%; 
+      max-width: 960px; 
+      height: 540px; 
+      border: 3px solid #333; 
+      border-radius: 12px; 
+      margin: 25px auto; 
+      display: block; 
+    }
+    .note { 
+      color: #aaa; 
+      font-size: 15px; 
+      margin-top: 40px; 
+      line-height: 1.6; 
+    }
+  </style>
+</head>
+<body>
+  <h1>That Time I Got Reincarnated as a Slime</h1>
+  <h2>Episode 1 - The Storm Dragon, Veldora</h2>
+
+  <button class="sub-btn" onclick="showPlayer('sub')">Watch Sub (English Sub)</button>
+  <button class="dub-btn" onclick="showPlayer('dub')">Watch Dub (English Dub)</button>
+
+  <!-- Sub Version - Official Crunchyroll Upload -->
+  <div id="sub-player" style="display: block;">
+    <h3>English Sub - Official</h3>
+    <iframe src="https://www.youtube.com/embed/LyIiHsqq-FQ" 
+            title="Slime Ep 1 Sub Official" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen></iframe>
+  </div>
+
+  <!-- Dub Version - Official Crunchyroll Upload -->
+  <div id="dub-player" style="display: none;">
+    <h3>English Dub - Official</h3>
+    <iframe src="https://www.youtube.com/embed/aNJeqk_J6xY" 
+            title="Slime Ep 1 Dub Official" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen></iframe>
+  </div>
+
+  <div class="note">
+    These are official full Episode 1 videos uploaded by Crunchyroll on YouTube.<br>
+    If one says "unavailable in your country", try the other button or use the Muse Asia playlist instead (often better in PH):<br>
+    <a href="https://www.youtube.com/playlist?list=PLwLSw1_eDZl0eZktsDv3cu78EC0l2qYKI" target="_blank" style="color:#00bfff;">Muse Asia Sub Playlist</a><br>
+    <a href="https://www.youtube.com/playlist?list=PLwLSw1_eDZl0MfIdBzXRl2q4luviKzsxq" target="_blank" style="color:#00bfff;">Muse Asia Dub Playlist</a>
+  </div>
+
+  <script>
+    function showPlayer(type) {
+      document.getElementById('sub-player').style.display = (type === 'sub') ? 'block' : 'none';
+      document.getElementById('dub-player').style.display = (type === 'dub') ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
