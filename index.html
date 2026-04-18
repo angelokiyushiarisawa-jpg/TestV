@@ -913,7 +913,7 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 
 </main>
 
-<!-- HLS.js — plays m3u8 streams from Consumet providers -->
+<!-- HLS.js — plays AnimePahe m3u8 streams -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
 
 <!-- Firebase SDKs (compat) -->
@@ -1066,117 +1066,129 @@ async function jk(path, p = {}) {
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 /* ══════════════════════════════════════════════
-   📺 CONSUMET — Multi-instance, Multi-provider
-   Providers: animepahe · animekai · zoro · gogoanime
+   📺 ANIMEPAHE — Groq AI finds the episodeId
+   then calls /anime/animepahe/watch?episodeId=
 ══════════════════════════════════════════════ */
-const C_HOSTS = [
-  'https://api.consumet.org',
-  'https://consumet-api.onrender.com',
-];
+const CONSUMET_BASE = 'https://api.consumet.org';
+const GROQ_KEY = 'gsk_ehRtrETFA7EFyy3mxzEWWWGdyb3FYpDXWlR3Daabf4a0LKMnCUj0B';
+const EP_CACHE = {};
 
-// Provider config — AnimePahe has a different watch endpoint
-const C_PROVIDERS = [
-  { id: 'animepahe', watchStyle: 'queryparam' },  // /watch?episodeId=
-  { id: 'animekai',  watchStyle: 'path' },          // /watch/{id}
-  { id: 'zoro',      watchStyle: 'path' },
-  { id: 'gogoanime', watchStyle: 'path' },
-];
-
-const C_SERVERS = ['vidstreaming', 'streamsb', 'streamtape'];
-const SRC_CACHE = {};
-
-function titleScore(resultTitle, query) {
-  const r = (resultTitle || '').toLowerCase();
-  const q = query.toLowerCase();
-  if (r === q) return 100;
-  if (r.startsWith(q)) return 80;
-  if (r.includes(q)) return 60;
-  if (r.includes(q.slice(0, 10))) return 40;
-  return 0;
-}
-
-async function cFetch(url) {
-  const r = await fetch(url, { signal: AbortSignal.timeout(9000) });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
-}
-
-async function tryProvider(host, provider, titles, ep, isDub) {
-  for (const title of titles) {
+// Step 1: Consumet search + info to get episodeId
+async function consumetGetEpId(titleEn, titleJa, ep) {
+  for (const title of [...new Set([titleEn, titleJa].filter(Boolean))]) {
     try {
-      // 1. Search
-      const sd = await cFetch(`${host}/anime/${provider.id}/${encodeURIComponent(title)}`);
+      const sr = await fetch(`${CONSUMET_BASE}/anime/animepahe/${encodeURIComponent(title)}`);
+      if (!sr.ok) continue;
+      const sd = await sr.json();
       const results = sd.results || [];
       if (!results.length) continue;
 
-      // Pick best title match
+      // Score title match
+      const q = title.toLowerCase();
       const match = results
-        .map(r => ({ r, s: titleScore(r.title, title) }))
+        .map(r => {
+          const t = r.title?.toLowerCase() || '';
+          const s = t === q ? 100 : t.startsWith(q.slice(0,8)) ? 70 : t.includes(q.slice(0,6)) ? 40 : 0;
+          return { r, s };
+        })
         .sort((a, b) => b.s - a.s)[0]?.r || results[0];
 
-      // 2. Get episode list
-      const info = await cFetch(`${host}/anime/${provider.id}/info?id=${encodeURIComponent(match.id)}`);
+      const ir = await fetch(`${CONSUMET_BASE}/anime/animepahe/info?id=${encodeURIComponent(match.id)}`);
+      if (!ir.ok) continue;
+      const info = await ir.json();
       const eps = info.episodes || [];
       const episode = eps.find(e => Number(e.number) === ep) || eps[ep - 1];
-      if (!episode?.id) continue;
+      if (episode?.id) return episode.id;
+    } catch {}
+  }
+  return null;
+}
 
-      // 3. Get stream sources
-      let watchData;
-      if (provider.watchStyle === 'queryparam') {
-        // AnimePahe: /watch?episodeId=hash
-        watchData = await cFetch(`${host}/anime/${provider.id}/watch?episodeId=${encodeURIComponent(episode.id)}`);
-      } else {
-        // Others: /watch/{episodeId}?server=X&dub=bool
-        for (const server of C_SERVERS) {
-          try {
-            watchData = await cFetch(
-              `${host}/anime/${provider.id}/watch/${encodeURIComponent(episode.id)}?server=${server}&dub=${isDub}`
-            );
-            if (watchData?.sources?.length) break;
-          } catch { watchData = null; }
+// Step 2: Groq AI fallback — compound-beta searches the web for the episodeId
+async function groqGetEpId(titleEn, ep) {
+  try {
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'compound-beta',
+        messages: [
+          {
+            role: 'system',
+            content: 'You find AnimePahe episode IDs via the Consumet API. Search the web if needed. Reply ONLY with valid JSON: {"sessionId":"..."} or {"episodeId":"..."} — no markdown.'
+          },
+          {
+            role: 'user',
+            content: `Find the AnimePahe session ID or episode ID for:
+Anime: "${titleEn}"
+Episode: ${ep}
+
+Try searching: https://api.consumet.org/anime/animepahe/${encodeURIComponent(titleEn)}
+Then look for the anime session, then episode ${ep} hash ID.`
+          }
+        ],
+        max_tokens: 200
+      })
+    });
+    if (!r.ok) return null;
+    const data = await r.json();
+    const text = data.choices?.[0]?.message?.content || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+
+    try {
+      const parsed = JSON.parse(clean.match(/\{[\s\S]*?\}/)?.[0] || '{}');
+
+      // If we got a sessionId, fetch episodes from it
+      if (parsed.sessionId) {
+        const ir = await fetch(`${CONSUMET_BASE}/anime/animepahe/info?id=${encodeURIComponent(parsed.sessionId)}`);
+        if (ir.ok) {
+          const info = await ir.json();
+          const eps = info.episodes || [];
+          const episode = eps.find(e => Number(e.number) === ep) || eps[ep - 1];
+          if (episode?.id) return episode.id;
         }
       }
-
-      const sources = watchData?.sources;
-      if (!sources?.length) continue;
-
-      // Sort by quality: auto > 1080p > 720p > rest
-      const qOrder = { auto: 0, '1080p': 1, '720p': 2, '480p': 3, '360p': 4 };
-      sources.sort((a, b) => (qOrder[a.quality] ?? 9) - (qOrder[b.quality] ?? 9));
-
-      return sources.map((s, i) => ({
-        name: `Server ${i + 1}`,
-        url: s.url,
-        isHLS: s.isM3U8 !== false,
-        quality: s.quality || 'auto',
-        subtitles: watchData.subtitles || [],
-        headers: watchData.headers || {}
-      }));
-    } catch(e) {
-      console.warn(`[${host}/${provider.id}] "${title}":`, e.message);
-    }
-  }
+      // If AI directly returned the episodeId hash
+      if (parsed.episodeId) return parsed.episodeId;
+    } catch {}
+  } catch {}
   return null;
 }
 
 async function getSrcs(malId, titleEn, titleJa, ep, isDub) {
   const key = `${malId}_${ep}_${isDub ? 1 : 0}`;
-  if (SRC_CACHE[key]) return SRC_CACHE[key];
+  if (EP_CACHE[key]) return EP_CACHE[key];
 
-  const titles = [...new Set([titleEn, titleJa].filter(Boolean))];
+  // Try Consumet search first, then AI fallback
+  let episodeId = await consumetGetEpId(titleEn, titleJa, ep);
+  if (!episodeId) episodeId = await groqGetEpId(titleEn, ep);
+  if (!episodeId) return [];
 
-  for (const host of C_HOSTS) {
-    for (const provider of C_PROVIDERS) {
-      const srcs = await tryProvider(host, provider, titles, ep, isDub);
-      if (srcs?.length) {
-        SRC_CACHE[key] = srcs;
-        console.log(`✅ Found via ${host}/${provider.id}`);
-        return srcs;
-      }
-    }
-  }
+  try {
+    const r = await fetch(`${CONSUMET_BASE}/anime/animepahe/watch?episodeId=${encodeURIComponent(episodeId)}`);
+    if (!r.ok) return [];
+    const d = await r.json();
+    const sources = d.sources || [];
+    if (!sources.length) return [];
 
-  return [];
+    const qOrder = { '1080p': 0, '720p': 1, '480p': 2, '360p': 3 };
+    sources.sort((a, b) => (qOrder[a.quality] ?? 9) - (qOrder[b.quality] ?? 9));
+
+    const srcs = sources.map((s, i) => ({
+      name: `Server ${i + 1}`,
+      url: s.url,
+      isHLS: s.isM3U8 !== false,
+      quality: s.quality || 'auto',
+      subtitles: d.subtitles || [],
+      headers: d.headers || {}
+    }));
+
+    EP_CACHE[key] = srcs;
+    return srcs;
+  } catch { return []; }
 }
 
 /* ══════════════════════════════════════════════
@@ -1657,7 +1669,7 @@ async function loadPlayer(animeId, ep) {
   document.getElementById('ptt').textContent = `${CUR_TITLE_EN} — Episode ${CUR_EP}`;
   document.getElementById('pmt').textContent = `${a.type || ''} · ${a.year || ''} · ${(a.genres || []).slice(0, 3).map(g => g.name).join(', ')}`;
 
-  document.getElementById('pmsg').textContent = '🔍 Searching streams...';
+  document.getElementById('pmsg').textContent = 'Loading...';
   CUR_SRCS = await getSrcs(animeId, CUR_TITLE_EN, CUR_TITLE_JA, CUR_EP, CUR_DUB);
   renderSrcs();
   setSource(0);
@@ -1687,7 +1699,7 @@ async function setAudio(isDub) {
   updateAudTabs();
   if (!CUR_ANIME_ID) return;
   document.getElementById('pmask').style.display = 'flex';
-  document.getElementById('pmsg').textContent = '🔍 Searching streams...';
+  document.getElementById('pmsg').textContent = 'Loading...';
   CUR_SRCS = await getSrcs(CUR_ANIME_ID, CUR_TITLE_EN, CUR_TITLE_JA, CUR_EP, CUR_DUB);
   CUR_SI = 0;
   renderSrcs();
@@ -1723,13 +1735,13 @@ function setSource(idx) {
   if (!src?.url) {
     mask.style.display = 'flex';
     document.getElementById('pmsg').textContent = CUR_SRCS.length === 0
-      ? '❌ Not found on any server. Try switching Sub/Dub or come back later.'
-      : '❌ This source has no URL.';
+      ? '❌ Not available. Try switching Sub/Dub.'
+      : '❌ Source error.';
     return;
   }
 
   mask.style.display = 'flex';
-  document.getElementById('pmsg').textContent = `⏳ Loading ${src.name}${src.quality && src.quality !== 'auto' ? ' · ' + src.quality : ''}...`;
+  document.getElementById('pmsg').textContent = 'Loading...';
 
   const onReady = async () => {
     mask.style.display = 'none';
@@ -1749,13 +1761,11 @@ function setSource(idx) {
 
   const onFail = (reason) => {
     if (window._hls) { window._hls.destroy(); window._hls = null; }
-    console.warn(`Source ${idx} failed:`, reason);
     if (hasNext) {
-      toast(`${src.name} failed — trying ${CUR_SRCS[nextIdx].name}...`, 'nf');
       setSource(nextIdx);
     } else {
       mask.style.display = 'flex';
-      document.getElementById('pmsg').textContent = '❌ All sources failed. Try switching Sub/Dub or come back later.';
+      document.getElementById('pmsg').textContent = '❌ Failed. Try switching Sub/Dub or come back later.';
     }
   };
 
@@ -1790,7 +1800,7 @@ function setSource(idx) {
   } else {
     video.src = src.url;
     video.addEventListener('canplay', () => { addSubs(src.subtitles); onReady(); }, { once: true });
-    video.addEventListener('error', () => onFail('mp4-error'), { once: true });
+    video.addEventListener('error', () => onFail('mp4'), { once: true });
   }
 }
 
