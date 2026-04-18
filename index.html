@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slime Ep 1 - Crunchyroll Official</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #121212; 
+      color: #fff; 
+      margin: 0; 
+      padding: 20px; 
+      text-align: center; 
+    }
+    h1 { margin: 20px 0; color: #00bfff; }
+    button { 
+      padding: 14px 32px; 
+      margin: 12px; 
+      font-size: 18px; 
+      border: none; 
+      border-radius: 10px; 
+      cursor: pointer; 
+    }
+    .sub-btn { background: #00bfff; color: white; }
+    .dub-btn { background: #ff4500; color: white; }
+    iframe { 
+      width: 100%; 
+      max-width: 960px; 
+      height: 540px; 
+      border: 3px solid #333; 
+      border-radius: 12px; 
+      margin: 25px auto; 
+      display: block; 
+    }
+    .note { 
+      color: #aaa; 
+      font-size: 15px; 
+      margin-top: 50px; 
+      line-height: 1.5; 
+    }
+  </style>
+</head>
+<body>
+  <h1>That Time I Got Reincarnated as a Slime - Episode 1</h1>
+  
+  <button class="sub-btn" onclick="showPlayer('sub')">Watch Sub (English Sub)</button>
+  <button class="dub-btn" onclick="showPlayer('dub')">Watch Dub (English Dub)</button>
+
+  <!-- Sub -->
+  <div id="sub-player" style="display: block;">
+    <h2>English Sub - Official Crunchyroll</h2>
+    <iframe src="https://www.youtube.com/embed/LyIiHsqq-FQ" 
+            title="Slime Ep 1 Sub" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen></iframe>
+  </div>
+
+  <!-- Dub -->
+  <div id="dub-player" style="display: none;">
+    <h2>English Dub - Official Crunchyroll</h2>
+    <iframe src="https://www.youtube.com/embed/aNJeqk_J6xY" 
+            title="Slime Ep 1 Dub" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen></iframe>
+  </div>
+
+  <div class="note">
+    These are official full Episode 1 previews uploaded by Crunchyroll.<br>
+    They should load without "webpage not found" or configuration errors.<br><br>
+    For the full series on your devanime.com site, add a big button linking to:<br>
+    <a href="https://www.crunchyroll.com/series/GYZJ43JMR/that-time-i-got-reincarnated-as-a-slime" target="_blank" style="color: #00bfff;">Watch on Crunchyroll</a>
+  </div>
+
+  <script>
+    function showPlayer(type) {
+      document.getElementById('sub-player').style.display = (type === 'sub') ? 'block' : 'none';
+      document.getElementById('dub-player').style.display = (type === 'dub') ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
